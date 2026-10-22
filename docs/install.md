@@ -2,7 +2,11 @@
 
 ## Release install (daily use)
 
-From the repo root run **`./scripts/release.sh`**. It runs the router and picker tests, builds `Turnout.app` (router) and `Turnout Picker.app`, signs both (see **Code signing** below), installs them into `/Applications` (override with `TURNOUT_INSTALL_DIR`), registers them with LaunchServices, seeds `~/.config/turnout/router.yaml` from `config/examples/` if it is missing, removes `~/.config/turnout/picker-dev-path`, and starts the picker in the background. The picker registers itself as a login item so it stays warm.
+Turnout is **one app**: `Turnout.app` is the router (the default browser), with the Electron picker embedded at `Contents/Helpers/Turnout Picker.app`.
+
+**Beta download:** grab the DMG from [GitHub Releases](https://github.com/thedomguy/turnout/releases), drag `Turnout.app` to Applications, and, because beta builds aren't notarized yet, clear the quarantine flag once: `xattr -dr com.apple.quarantine /Applications/Turnout.app`.
+
+**From source:** from the repo root run **`./scripts/release.sh`**. It runs the router and picker tests, builds the picker and embeds it in `Turnout.app`, signs it (see **Code signing** below), installs it into `/Applications` (override with `TURNOUT_INSTALL_DIR`), registers it with LaunchServices, seeds `~/.config/turnout/router.yaml` from `config/examples/` if it is missing, removes `~/.config/turnout/picker-dev-path`, and launches it. On first launch from `/Applications` the router adds itself as a login item (turn it off in Login Items if you prefer) and starts the picker hidden, so the first chooser opens instantly.
 
 Then set **System Settings → Desktop & Dock → Default web browser** to **Turnout**. Re-run `release.sh` after changes; bundle IDs and signing stay the same, so the default-browser choice survives.
 
@@ -17,7 +21,7 @@ security find-identity -v -p codesigning          # list your identities
 echo 'Apple Development: you@example.com (ABCDE12345)' > .signing-identity
 ```
 
-With neither, both apps are signed ad-hoc (they still work; macOS may forget the default-browser choice after a rebuild).
+With neither, the app is signed ad-hoc (they still work; macOS may forget the default-browser choice after a rebuild).
 
 ### Requirements
 
@@ -85,7 +89,7 @@ For local development:
 npm start
 ```
 
-`npm run package` ([scripts/package-macos-app.mjs](../picker/scripts/package-macos-app.mjs)) uses `@electron/packager` to set the bundle id `io.turnout.picker`, declare `turnout` in `CFBundleURLTypes`, and set `LSUIElement` (no Dock icon). Only the packaged app calls `setAsDefaultProtocolClient('turnout')` and registers as a login item. The router opens it with `open -b io.turnout.picker turnout://…` (`picker.bundleId` in `router.yaml`), so a stray dev Electron registered for `turnout://` can't intercept the link.
+`npm run package` ([scripts/package-macos-app.mjs](../picker/scripts/package-macos-app.mjs)) uses `@electron/packager` to build the picker with bundle id `io.turnout.picker` and `LSUIElement` (no Dock icon). `router/scripts/package-macos-app.sh` embeds it at `Turnout.app/Contents/Helpers/Turnout Picker.app` (pass `PICKER_APP=…`). The router execs that binary directly with the `turnout://pick?u=…` URL in argv; a running picker holds Electron's single-instance lock, so later links are forwarded to it. Nothing registers `turnout://` system-wide.
 
 **If you see Electron’s generic splash:** the wrong `Electron.app` ran without the Turnout app folder. After **`./scripts/local-dev.sh`**, **`~/.config/turnout/picker-dev-path`** exists and the Router opens the picker only via **`node …/run-electron.mjs turnout://…`** (not bare **`open turnout://`**), including when the picker daemon is already running (second instance forwards to the first). Quick test: **`./scripts/dev-smoke.sh`**. Avoid **`ELECTRON_OVERRIDE_DIST_PATH`** pointing at another repo.
 

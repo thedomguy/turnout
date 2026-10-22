@@ -11,6 +11,7 @@ import (
 	"log/slog"
 
 	"turnout/router/internal/dispatch"
+	"turnout/router/internal/launch"
 )
 
 //export TurnoutHandleURL
@@ -24,4 +25,9 @@ func TurnoutHandleURL(url *C.char, forcePicker C.int) {
 	if err := dispatch.HandleURL(u, force); err != nil {
 		slog.Error("dispatch", "url", u, "err", err)
 	}
+}
+
+//export TurnoutPrewarm
+func TurnoutPrewarm() {
+	launch.PrewarmPicker()
 }

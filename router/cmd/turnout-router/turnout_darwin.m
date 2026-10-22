@@ -1,7 +1,9 @@
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
+#import <ServiceManagement/ServiceManagement.h>
 
 extern void TurnoutHandleURL(char *url, int forcePicker);
+extern void TurnoutPrewarm(void);
 
 @interface TurnoutDelegate : NSObject <NSApplicationDelegate>
 @end
@@ -39,6 +41,30 @@ extern void TurnoutHandleURL(char *url, int forcePicker);
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
     (void)notification;
+    [self registerLoginItemOnce];
+    TurnoutPrewarm();
+}
+
+// Start at login so neither the router nor the picker pays a cold start on the first link.
+// Registered once per install (from /Applications only, never dev builds); if the user later
+// turns it off in Login Items, that choice sticks.
+- (void)registerLoginItemOnce {
+    if (![[[NSBundle mainBundle] bundlePath] hasPrefix:@"/Applications/"]) {
+        return;
+    }
+    NSString *key = @"TurnoutLoginItemRegistered";
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    if ([defaults boolForKey:key]) {
+        return;
+    }
+    if (@available(macOS 13.0, *)) {
+        NSError *err = nil;
+        if ([[SMAppService mainAppService] registerAndReturnError:&err]) {
+            [defaults setBool:YES forKey:key];
+        } else {
+            NSLog(@"Turnout: login item registration failed: %@", err);
+        }
+    }
 }
 
 @end

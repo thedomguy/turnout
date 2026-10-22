@@ -313,7 +313,7 @@ if (!gotLock) {
 
   app.whenReady().then(() => {
     // The picker ships inside Turnout.app; the router execs it with a turnout://pick URL in argv,
-    // so it neither registers the scheme nor starts at login.
+    // so it doesn't register the scheme. The router starts at login and pre-warms it (no argv).
     void refreshBrowsers()
     createWindow()
 

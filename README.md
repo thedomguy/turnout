@@ -46,9 +46,13 @@ graph TD
 
 ## Install
 
-Turnout is built from source for now.
+**Beta download:** get the latest DMG from [Releases](https://github.com/thedomguy/turnout/releases), drag **Turnout** to Applications, then, because beta builds aren't notarized yet, run once:
 
-**Requirements:** macOS 12+, Xcode Command Line Tools, Go 1.22+, Node.js 18+.
+```bash
+xattr -dr com.apple.quarantine /Applications/Turnout.app
+```
+
+**From source:** macOS 12+, Xcode Command Line Tools, Go 1.22+, Node.js 18+.
 
 ```bash
 git clone https://github.com/thedomguy/turnout.git
@@ -56,7 +60,7 @@ cd turnout
 ./scripts/release.sh
 ```
 
-`release.sh` runs the tests, builds and signs `Turnout.app` (router) and `Turnout Picker.app`, installs both into `/Applications`, seeds `~/.config/turnout/router.yaml` from the example, and starts the picker (it adds itself as a login item so it's always warm).
+`release.sh` runs the tests, builds the picker, embeds it in `Turnout.app`, signs it, installs it into `/Applications`, seeds `~/.config/turnout/router.yaml` from the example, and launches it. Turnout adds itself as a login item and keeps the picker warm in the background, so the chooser opens instantly.
 
 Then pick **Turnout** in **System Settings → Desktop & Dock → Default web browser**.
 
@@ -114,10 +118,10 @@ If you want a scriptable, battle-tested router, use **Finicky**. If you want a b
 | Path | What |
 |---|---|
 | `router/` | `Turnout.app` — the default-browser handler (Go + Objective-C, MIT) |
-| `picker/` | `Turnout Picker.app` — the chooser (Electron, GPL-3.0) |
+| `picker/` | The chooser (Electron, GPL-3.0), embedded in `Turnout.app` as `Contents/Helpers/Turnout Picker.app` |
 | `config/examples/` | Example `router.yaml` and `frecency.json` |
 | `assets/icon/` | The app icon, drawn in code (`make-icon.swift` → `build-icon.sh`) |
-| `scripts/` | `release.sh` (build + install), `local-dev.sh` and smoke tests |
+| `scripts/` | `release.sh` (build + install locally), `beta-release.sh` (package + publish a beta, see [docs/release.md](docs/release.md)), `local-dev.sh` and smoke tests |
 | `docs/` | [Install](docs/install.md), [configuration](docs/config.md), [licensing](docs/licensing.md), [migrating from Finicky](docs/MIGRATE_FINICKY.md) |
 | `references/` | Finicky and Browserosaurus as git submodules — reading material only, nothing is built from them |
 
@@ -153,4 +157,4 @@ Built with: [Electron](https://www.electronjs.org/) and [@electron/packager](htt
 - Router (`router/`, and everything outside `picker/`): **MIT** — see [LICENSE](LICENSE).
 - Picker (`picker/`): **GPL-3.0** — see [picker/LICENSE](picker/LICENSE). It is derived from Browserosaurus.
 
-Distributing both apps together carries GPL-3.0 obligations for the picker; see [docs/licensing.md](docs/licensing.md).
+Because the picker ships inside `Turnout.app`, distributing the app carries GPL-3.0 obligations for the picker (source is in this repo); see [docs/licensing.md](docs/licensing.md).

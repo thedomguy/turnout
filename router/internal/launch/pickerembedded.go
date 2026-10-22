@@ -3,3 +3,5 @@
 package launch
 
 func trySpawnPickerEmbedded(string) bool { return false }
+
+func PrewarmPicker() {}

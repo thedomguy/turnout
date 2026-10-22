@@ -13,6 +13,7 @@ The first beta, `v0.1.0-beta.1`, is the base for the beta line; bump `beta.N` pe
 1. Merge to `develop`, bump `VERSION`, commit (tree must be clean).
 2. `./scripts/beta-release.sh` builds, signs, packages to `dist/beta/<version>/` (DMG, zip, `SHA256SUMS`). Nothing leaves the machine.
 3. Try the DMG, then `./scripts/beta-release.sh --publish` tags `v<VERSION>`, pushes the tag and creates a GitHub **pre-release** with the artifacts.
+   Release notes come from `docs/release-notes/v<VERSION>.md` (write it before publishing); without it the release gets a one-line note.
 
 `./scripts/release.sh` stays the local daily-driver install into `/Applications`.
 

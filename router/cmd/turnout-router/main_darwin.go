@@ -4,7 +4,7 @@ package main
 
 /*
 #cgo CFLAGS: -fobjc-arc -mmacosx-version-min=12.0
-#cgo LDFLAGS: -framework Cocoa -framework Carbon -framework ApplicationServices
+#cgo LDFLAGS: -framework Cocoa -framework Carbon -framework ApplicationServices -framework ServiceManagement
 
 void turnout_run_app(void);
 */

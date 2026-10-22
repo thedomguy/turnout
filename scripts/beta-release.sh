@@ -109,9 +109,15 @@ if [[ "$PUBLISH" -eq 1 ]]; then
   echo "==> Publish $TAG"
   git tag -a "$TAG" -m "Turnout $VERSION"
   git push origin "$TAG"
-  NOTES="Turnout $VERSION (beta)."
-  [[ "$NOTARIZE" -eq 1 ]] || NOTES="$NOTES Not notarized: run xattr -dr com.apple.quarantine /Applications/Turnout.app after install."
-  gh release create "$TAG" "$DMG" "$ZIP" "$OUT/SHA256SUMS" --prerelease --title "Turnout $VERSION" --notes "$NOTES" --verify-tag
+  # Release notes: docs/release-notes/<tag>.md when present, else a one-liner.
+  NOTES_FILE="docs/release-notes/$TAG.md"
+  if [[ -f "$NOTES_FILE" ]]; then
+    gh release create "$TAG" "$DMG" "$ZIP" "$OUT/SHA256SUMS" --prerelease --title "Turnout $VERSION" --notes-file "$NOTES_FILE" --verify-tag
+  else
+    NOTES="Turnout $VERSION (beta)."
+    [[ "$NOTARIZE" -eq 1 ]] || NOTES="$NOTES Not notarized: run xattr -dr com.apple.quarantine /Applications/Turnout.app after install."
+    gh release create "$TAG" "$DMG" "$ZIP" "$OUT/SHA256SUMS" --prerelease --title "Turnout $VERSION" --notes "$NOTES" --verify-tag
+  fi
 else
   echo ""
   echo "Not published. To release: ./scripts/beta-release.sh --publish"
