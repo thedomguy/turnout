@@ -1,0 +1,36 @@
+# Example Turnout policy (~/.config/turnout/router.yaml)
+# Order matters: first matching handler wins (same as finicky.js).
+# Omit defaultBrowser to send unmatched URLs to the Turnout Picker (after handlers + frecency).
+# Option-click any link to skip all of this and open the picker.
+
+defaultBrowser: Safari
+
+handlers:
+  # Local dev servers in a Chromium browser with devtools you like
+  - match: ^https?://(localhost|127\.0\.0\.1)(:\d+)?/
+    browser: Google Chrome
+
+  # A work org's repos and tools in a dedicated Firefox profile
+  - match:
+      - dev\.azure\.com/acme-corp
+      - github\.com/acme-corp
+    browser: Firefox
+    profile: Work            # profile name as shown in Firefox; a unique part also matches
+
+  # Video calls straight to the app's preferred browser
+  - match:
+      - meet\.google\.com
+      - zoom\.us/j/
+    browser: Google Chrome
+    profile: Personal        # Chromium-family profiles work too (Chrome, Brave, Edge, Vivaldi)
+
+# Hide apps from the picker and never pick them automatically via frecency
+denylist:
+  - Figma
+
+frecency:
+  minHits: 2
+  minScore: 2
+
+picker:
+  bundleId: io.turnout.picker

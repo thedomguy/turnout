@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; img-src 'self' data:; script-src 'self'"
+    />
+    <title>Turnout</title>
+    <link rel="stylesheet" href="picker-built.css" />
+  </head>
+  <body>
+    <div
+      id="root"
+      class="relative flex h-screen w-screen select-none flex-col items-center px-2 pt-4 dark:text-white"
+      title=""
+    >
+      <div id="loading" class="flex h-full w-full items-center justify-center">
+        <svg
+          aria-busy="true"
+          aria-label="Loading browsers"
+          class="size-16 animate-spin text-black dark:text-white"
+          fill="none"
+          role="alert"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
+          <path
+            class="opacity-75"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+
+      <div id="scroller" class="relative hidden w-full grow overflow-y-auto px-2 pb-2">
+        <div id="grid" role="listbox" aria-label="Browsers"></div>
+      </div>
+
+      <button
+        id="urlbar"
+        type="button"
+        tabindex="-1"
+        class="flex w-full shrink-0 cursor-default items-center px-4 py-2 text-center text-sm border-t border-neutral-400 dark:border-gray-900"
+      >
+        <div
+          id="urlbar-text"
+          class="grow overflow-hidden text-ellipsis tracking-wider text-black text-opacity-50 dark:text-white dark:text-opacity-50"
+        ></div>
+      </button>
+
+      <div id="update-bar" class="hidden w-full shrink-0 pb-1 text-center text-xs dark:text-gray-400">
+        Update Available
+      </div>
+
+      <div
+        id="support-overlay"
+        class="absolute inset-0 hidden flex-col overflow-y-auto bg-slate-800 text-slate-400"
+      ></div>
+    </div>
+    <script src="renderer.mjs" type="module"></script>
+  </body>
+</html>

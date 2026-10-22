@@ -1,0 +1,6 @@
+[submodule "references/browserosaurus"]
+	path = references/browserosaurus
+	url = https://github.com/will-stone/browserosaurus.git
+[submodule "references/finicky"]
+	path = references/finicky
+	url = https://github.com/johnste/finicky
