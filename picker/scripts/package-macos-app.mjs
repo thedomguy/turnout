@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Build release/Turnout Picker-darwin-<arch>/Turnout Picker.app: a background (LSUIElement) app
- * registered for turnout://, signed with a stable identity so macOS grants survive rebuilds.
+ * embedded in Turnout.app (the router execs it), signed with a stable identity so macOS grants survive rebuilds.
  * Identity: $SIGN_IDENTITY, else the first line of ../.signing-identity (git-ignored), else ad-hoc.
  */
 import { execFileSync } from 'node:child_process'
@@ -24,6 +24,8 @@ function configuredIdentity() {
   return '-'
 }
 
+// TURNOUT_DIST=1 (beta-release.sh): hardened runtime + secure timestamp, required for notarization.
+const dist = process.env.TURNOUT_DIST === '1'
 let identity = configuredIdentity()
 if (identity !== '-') {
   const identities = execFileSync('security', ['find-identity', '-v', '-p', 'codesigning'], {
@@ -41,9 +43,10 @@ const [appDir] = await packager({
   platform: 'darwin',
   arch: process.arch,
   appBundleId: 'io.turnout.picker',
+  appVersion: process.env.TURNOUT_SHORT_VERSION || undefined,
+  buildVersion: process.env.TURNOUT_BUILD || undefined,
   appCategoryType: 'public.app-category.utilities',
   icon: path.join(pickerRoot, '..', 'assets', 'icon', 'Turnout.icns'),
-  protocols: [{ name: 'Turnout', schemes: ['turnout'] }],
   extendInfo: { LSUIElement: true },
   // file-icon ships a native binary that must stay a plain file on disk.
   asar: false,
@@ -53,7 +56,16 @@ const [appDir] = await packager({
   ignore: [/^\/release($|\/)/, /^\/test($|\/)/, /^\/scripts($|\/)/, /^\/picker\.css$/, /^\/tailwind\.config\.cjs$/],
   // No secure timestamp: it's only needed for distribution, and Apple's timestamp server makes
   // local signing flaky ("internal error in Code Signing subsystem").
-  osxSign: identity === '-' ? false : { identity, optionsForFile: () => ({ timestamp: 'none' }) },
+  osxSign:
+    identity === '-'
+      ? false
+      : {
+          identity,
+          optionsForFile: () =>
+            dist
+              ? { hardenedRuntime: true, entitlements: path.join(pickerRoot, 'macos', 'entitlements.plist') }
+              : { timestamp: 'none' },
+        },
 })
 
 const app = path.join(appDir, 'Turnout Picker.app')

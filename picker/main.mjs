@@ -300,7 +300,7 @@ if (!gotLock) {
     if (url) handleTurnoutUrl(url)
   })
 
-  // A cold launch via `open -b … turnout://…` delivers open-url before the app is ready;
+  // A cold launch via `open … turnout://…` delivers open-url before the app is ready;
   // showPicker just records the URL until the window has loaded.
   app.on('open-url', (event, url) => {
     event.preventDefault()
@@ -312,13 +312,8 @@ if (!gotLock) {
   })
 
   app.whenReady().then(() => {
-    // Only the installed app registers turnout:// and starts at login; in dev this would
-    // register the bare node_modules Electron.app instead.
-    if (process.platform === 'darwin' && app.isPackaged) {
-      app.setAsDefaultProtocolClient('turnout')
-      app.setLoginItemSettings({ openAtLogin: true })
-    }
-
+    // The picker ships inside Turnout.app; the router execs it with a turnout://pick URL in argv,
+    // so it neither registers the scheme nor starts at login.
     void refreshBrowsers()
     createWindow()
 

@@ -38,13 +38,17 @@ func OpenApp(appName, profile, targetURL string, background bool) error {
 	return exec.Command("open", args...).Run()
 }
 
-// OpenPicker hands turnout://pick to the installed Turnout Picker by bundle id (open -b), so
-// no other app registered for turnout:// (e.g. a bare dev Electron) can intercept it.
+// OpenPicker shows the picker: the dev checkout when picker-dev-path exists, else the picker
+// bundled inside this app, else (legacy standalone install) turnout://pick via open -b so no
+// other app registered for turnout:// (e.g. a bare dev Electron) can intercept it.
 func OpenPicker(targetURL, pickerBundleID string) error {
 	if targetURL == "" {
 		return fmt.Errorf("launch: empty target URL")
 	}
 	if trySpawnPickerDev(targetURL) {
+		return nil
+	}
+	if trySpawnPickerEmbedded(targetURL) {
 		return nil
 	}
 	pick := fmt.Sprintf("turnout://pick?u=%s", encodePickParam(targetURL))

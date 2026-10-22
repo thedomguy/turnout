@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Build signed Turnout.app (router) + Turnout Picker.app, install both into /Applications,
-# seed ~/.config/turnout/router.yaml if missing, and start the picker in the background.
+# Build signed Turnout.app (router, with the picker embedded under Contents/Helpers), install it
+# into /Applications and seed ~/.config/turnout/router.yaml if missing. Local daily-driver install;
+# for a distributable beta use scripts/beta-release.sh.
 # Setting the default browser stays manual: System Settings → Desktop & Dock → Default web browser.
 
 TURNOUT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -20,22 +21,22 @@ echo "==> Tests"
 (cd "$TURNOUT_ROOT/router" && go test ./...)
 (cd "$TURNOUT_ROOT/picker" && npm install --no-audit --no-fund && npm test)
 
-echo "==> Turnout.app (router)"
-mkdir -p "$(dirname "$ROUTER_BUILD")"
-"$TURNOUT_ROOT/router/scripts/package-macos-app.sh" "$ROUTER_BUILD"
-
-echo "==> Turnout Picker.app"
+echo "==> Turnout Picker.app (embedded)"
 (cd "$TURNOUT_ROOT/picker" && npm run package)
+
+echo "==> Turnout.app (router + picker)"
+mkdir -p "$(dirname "$ROUTER_BUILD")"
+PICKER_APP="$PICKER_BUILD" "$TURNOUT_ROOT/router/scripts/package-macos-app.sh" "$ROUTER_BUILD"
 
 echo "==> Install into $DEST"
 killall Turnout "Turnout Picker" 2>/dev/null || true
 "$TURNOUT_ROOT/scripts/picker-daemon.sh" stop >/dev/null 2>&1 || true
-for app in "$ROUTER_BUILD" "$PICKER_BUILD"; do
-  target="$DEST/$(basename "$app")"
-  rm -rf "$target"
-  ditto "$app" "$target"
-  "$LSREGISTER" -f "$target"
-done
+# The picker used to be a separate app; remove a leftover standalone copy.
+rm -rf "$DEST/Turnout Picker.app"
+target="$DEST/Turnout.app"
+rm -rf "$target"
+ditto "$ROUTER_BUILD" "$target"
+"$LSREGISTER" -f "$target"
 
 echo "==> Config ($CONFIG_DIR)"
 mkdir -p "$CONFIG_DIR"
@@ -46,8 +47,8 @@ fi
 # picker-dev-path makes the router spawn the dev picker from this checkout; the installed app replaces it.
 rm -f "$CONFIG_DIR/picker-dev-path"
 
-open -g "$DEST/Turnout Picker.app"
+open -g "$DEST/Turnout.app"
 
 echo ""
-echo "Installed: $DEST/Turnout.app and $DEST/Turnout Picker.app"
+echo "Installed: $DEST/Turnout.app (picker embedded)"
 echo "Next: System Settings → Desktop & Dock → Default web browser → Turnout"

@@ -10,3 +10,4 @@ picker/release/
 .cursor/hooks/state/
 .signing-identity
 picker/picker-built.css
+.release-identity
